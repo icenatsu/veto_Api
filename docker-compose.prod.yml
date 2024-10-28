@@ -1,0 +1,71 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/production/Dockerfile
+    image: icenatsu/veto-api:latest
+    env_file:
+      - .env.production
+    ports:
+      - "3001:3000"
+    depends_on:
+      - db-prod
+    networks:
+      - backend
+    # command: pnpm run prod
+    # command: ["pnpm prod"]
+    # command: ["node", "server.js"]
+
+  # volumes:
+  # - .:/app # Monte le code de votre projet
+
+  db-prod:
+    image: postgres:13
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5434:5432"
+    volumes:
+      - db-prod-data:/var/lib/postgresql/data
+      - /home/ubuntu/Desktop/apps/veterinary_app/dockerFiles/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - /home/ubuntu/Desktop/apps/veterinary_app/dockerFiles/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    command:
+      [
+        "postgres",
+        "-c",
+        "config_file=/etc/postgresql/postgresql.conf",
+        "-c",
+        "hba_file=/etc/postgresql/pg_hba.conf",
+      ]
+    networks:
+      - backend
+
+  nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+      - "8443:443"
+    depends_on:
+      - app
+    networks:
+      - backend
+    user: root
+    volumes:
+      - /home/ubuntu/Desktop/apps/veterinary_app/dockerFiles/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - /home/ubuntu/Desktop/apps/veterinary_app/dockerFiles/nginx/veto-api:/etc/nginx/sites-enabled/veto-api
+    command: >
+      /bin/bash -c "mkdir -p /etc/nginx/sites-available && 
+      cp /etc/nginx/sites-enabled/veto-api /etc/nginx/sites-available/veto-api || true &&
+      nginx -g 'daemon off;'"
+
+volumes:
+  db-prod-data:
+
+networks:
+  backend:
+    driver: bridge
