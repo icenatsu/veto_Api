@@ -1,0 +1,76 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # 3. Login to DockerHub
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. Build and push Docker images
+      - name: Build and push Docker images
+        run: |
+          docker build --no-cache --build-arg CACHEBUST=$(date +%s) \
+               --build-arg DATABASE_URL=${{ secrets.DATABASE_URL }} \
+               --build-arg SHADOW_DATABASE_URL=${{ secrets.SHADOW_DATABASE_URL }} \
+               --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
+               --build-arg AUTH_GITHUB_ID=${{ secrets.AUTH_GITHUB_ID }} \
+               --build-arg AUTH_GITHUB_SECRET=${{ secrets.AUTH_GITHUB_SECRET }} \
+               --build-arg AUTH_GOOGLE_ID=${{ secrets.AUTH_GOOGLE_ID }} \
+               --build-arg AUTH_GOOGLE_SECRET=${{ secrets.AUTH_GOOGLE_SECRET }} \
+               --build-arg NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }} \
+               --build-arg NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }} \
+               -f docker/production/Dockerfile \
+               -t veto-api:latest .
+             docker tag veto-api:latest icenatsu/veto-api:latest
+             docker push icenatsu/veto-api:latest
+
+      # 5. Deploy to VPS via SSH using secrets
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            mkdir -p /home/ubuntu/Desktop/apps/veterinary_app/veto-api
+            cd /home/ubuntu/Desktop/apps/veterinary_app/veto-api || exit 1
+            if [ ! -d ".git" ]; then
+            echo "Cloning repository..."
+            git clone https://github.com/icenatsu/veto_Api.git .
+            fi
+            echo "Pulling latest changes from GitHub...."
+            git pull origin main  
+            echo "Pulling the latest Docker images..."
+            docker pull icenatsu/veto-api:latest
+            echo "Stopping existing containers..."
+            docker-compose -f docker-compose.prod.yml down  
+            echo "Removing unused Docker resources..."
+            docker system prune -f --volumes
+            echo "Starting new containers..."
+            docker-compose -f docker-compose.prod.yml up -d  
+            echo "Running Prisma Migrations..."
+            docker-compose -f docker-compose.prod.yml exec app npx prisma migrate deploy
+            echo "Checking container status..."
+            docker-compose -f docker-compose.prod.yml ps 
+            echo "Fetching container logs..."
+            docker-compose -f docker-compose.prod.yml logs
