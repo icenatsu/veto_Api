@@ -1,9 +1,8 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -15,15 +14,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { VeterinaryFormSchema } from "@/utils/schema";
-import { Veterinary, Veterinaries } from "../../utils/schema";
-import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
-import { forwardRef } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { env } from "@lib/env";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { forwardRef } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Veterinaries, Veterinary } from "../../utils/schema";
 
 type VeterinaryFormProps = {
   defaultValues?: Veterinary;
@@ -35,7 +34,6 @@ const VeterinaryForm = forwardRef<HTMLDivElement, VeterinaryFormProps>(
     const queryClient = useQueryClient();
     const router = useRouter();
     console.log(onClose);
-    
 
     const form = useForm<z.infer<typeof VeterinaryFormSchema>>({
       resolver: zodResolver(VeterinaryFormSchema),
@@ -98,9 +96,8 @@ const VeterinaryForm = forwardRef<HTMLDivElement, VeterinaryFormProps>(
       mutationFn: handleVeterinarySubmission,
       onSuccess: async (response) => {
         const data = response;
-        
-        if (defaultValues && defaultValues.id) {
 
+        if (defaultValues && defaultValues.id) {
           queryClient.setQueryData(
             ["veterinary", defaultValues.id],
             (oldData: Veterinary) => {
@@ -122,7 +119,10 @@ const VeterinaryForm = forwardRef<HTMLDivElement, VeterinaryFormProps>(
             queryKey: ["veterinary", defaultValues.id],
           });
 
-          
+          await queryClient.invalidateQueries({
+            queryKey: ["veterinaries"],
+          });
+
           router.push(`/veterinaries/${defaultValues.id}`);
           toast.success("Les coordonnées ont été mises à jour.");
         } else {
@@ -146,9 +146,9 @@ const VeterinaryForm = forwardRef<HTMLDivElement, VeterinaryFormProps>(
           onClose();
         }
       },
-      onError: (error:any) => {
+      onError: (error: any) => {
         console.log(error.message);
-        
+
         toast.error("Une erreur est survenue, veuillez reessayer plus tard");
       },
     });
