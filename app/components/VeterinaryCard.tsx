@@ -1,4 +1,6 @@
 "use client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,16 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Veterinary } from "../../utils/schema";
-import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession } from "next-auth/react";
 import { env } from "@lib/env";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Veterinary } from "../../utils/schema";
 
 type VeterinaryCardProps = {
   veterinary: Veterinary;
@@ -95,7 +94,9 @@ const VeterinaryCard = ({
   return (
     <Card className="relative w-full xl:max-w-80">
       <CardHeader className="items-centerS flex justify-between">
-        <CardTitle>{veterinary.nom}</CardTitle>
+        <CardTitle className="max-w-xs whitespace-normal break-words">
+          {veterinary.nom}
+        </CardTitle>
         {veterinary.isOpen24Hours && (
           <CardTitle>
             <Avatar className="absolute right-2 top-2 size-14 md:size-16">
@@ -106,16 +107,25 @@ const VeterinaryCard = ({
         )}
       </CardHeader>
       <CardContent className="space-y-2">
-        <CardDescription>
+        <CardDescription className="max-w-xs whitespace-normal break-words">
           {veterinary.adresse}, {veterinary.ville.codePostal}{" "}
           {veterinary.ville.nom}
         </CardDescription>
-        <pre className="whitespace-pre-wrap text-sm">{veterinary.horaires}</pre>
-        <CardDescription>{veterinary.telephone}</CardDescription>
-        <CardDescription>{veterinary.latitude}</CardDescription>
-        <CardDescription>{veterinary.longitude}</CardDescription>
+
+        <pre className="whitespace-pre-wrap break-words text-sm">
+          {veterinary.horaires}
+        </pre>
+        <CardDescription className="max-w-xs whitespace-normal break-words">
+          {veterinary.telephone}
+        </CardDescription>
+        <CardDescription className="max-w-xs whitespace-normal break-words">
+          {veterinary.latitude}
+        </CardDescription>
+        <CardDescription className="max-w-xs whitespace-normal break-words">
+          {veterinary.longitude}
+        </CardDescription>
         {veterinary.website && (
-          <CardDescription>
+          <CardDescription className="max-w-xs whitespace-normal break-words">
             <a
               target="_blank"
               href={veterinary.website}
