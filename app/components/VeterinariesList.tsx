@@ -6,9 +6,12 @@ type VeterinariesListProps = {
   getVeterinaryId: (id: number) => void;
 };
 
-const VeterinariesList = ({ veterinaries, getVeterinaryId }: VeterinariesListProps) => {
+const VeterinariesList = ({
+  veterinaries,
+  getVeterinaryId,
+}: VeterinariesListProps) => {
   return (
-    <div className="mt-5 flex flex-col gap-5 xl:flex-row">
+    <div className="mt-5 flex flex-col justify-center gap-5 xl:flex-row">
       {veterinaries?.map((veterinary) => (
         <VeterinaryCard
           key={veterinary.id}

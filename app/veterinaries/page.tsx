@@ -1,5 +1,6 @@
 "use client";
 
+import LoggedCard from "@/app/components/LoggedCard";
 import { Button } from "@/components/ui/button";
 import Legend from "@components/Legend";
 import { Loader } from "@components/Loader";
@@ -19,6 +20,13 @@ import { Veterinaries } from "../../utils/schema";
 // Charger le composant Map dynamiquement
 const Map = dynamic(() => import("@components/Map"), { ssr: false });
 
+type User = {
+  name?: string;
+  email?: string;
+  role: string;
+  image: string;
+};
+
 const VeterinariesPage = () => {
   const [showNewVeterinaryForm, setShowNewVeterinaryForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +36,7 @@ const VeterinariesPage = () => {
 
   const [franceBounds, setFranceBounds] = useState<LatLngBounds | null>(null);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const user = session?.user || null;
 
   useEffect(() => {
     const { LatLngBounds } = require("leaflet");
@@ -138,9 +147,12 @@ const VeterinariesPage = () => {
   };
 
   return (
-    <section className="flex flex-col gap-5 p-5 lg:gap-10 lg:p-20 xl:flex-col xl:items-center xl:px-40 xl:py-20">
-      <div className="flex flex-col items-center gap-5 lg:gap-10">
-        <h2 className="mb-4 text-2xl">Liste cliniques vétérinaires</h2>
+    <section className="flex flex-col gap-5 p-5 lg:gap-10 lg:p-20 xl:flex-col xl:px-40 xl:py-20">
+      <div className="flex flex-col gap-5 lg:gap-10">
+        {user && <LoggedCard user={user} />}
+        <h2 className="mb-4 text-center text-2xl">
+          Liste cliniques vétérinaires
+        </h2>
         {veterinaries?.length === 0 && (
           <p>
             Aucune clinique vétérinaire n&apos;est inscrite dans la base de

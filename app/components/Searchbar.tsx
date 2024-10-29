@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState } from "react";
 
 type SearchbarProps = {
@@ -19,7 +19,7 @@ const Searchbar = ({ onSearch }: SearchbarProps) => {
       value={searchQuery}
       onChange={handleChange}
       placeholder="Nom, ville ou code postal"
-      className="w-full rounded-3xl border px-4 py-2"
+      className="rounded-3xl border px-4 py-2 text-center"
     />
   );
 };
