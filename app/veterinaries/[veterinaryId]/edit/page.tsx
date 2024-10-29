@@ -1,12 +1,12 @@
 "use client";
 
-import VeterinaryForm from "@components/VeterinaryForm";
-import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Veterinary } from "@/utils/schema";
-import { env } from "@lib/env";
 import { Loader } from "@components/Loader";
+import VeterinaryForm from "@components/VeterinaryForm";
+import { env } from "@lib/env";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 const EditPage = ({
   params,
@@ -15,19 +15,20 @@ const EditPage = ({
     veterinaryId: string;
   };
 }) => {
-
-
   const { data: session, status } = useSession();
 
   const fetchVeterinary = async (veterinaryId: string): Promise<Veterinary> => {
     try {
-      const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/veterinaries/${veterinaryId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        cache: "no-cache",
-      });
+      const response = await fetch(
+        `${env.NEXT_PUBLIC_API_URL}/api/veterinaries/${veterinaryId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "no-cache",
+        }
+      );
 
       if (!response.ok) {
         // Traitement des erreurs retournées par l'API
@@ -43,7 +44,9 @@ const EditPage = ({
         error.message ||
           "Erreur lors de la récupération de la clinique vétérinaire"
       );
-      throw new Error("Erreur lors de la récupération de la clinique vétérinaire");
+      throw new Error(
+        "Erreur lors de la récupération de la clinique vétérinaire"
+      );
     }
   };
 
@@ -58,13 +61,13 @@ const EditPage = ({
   });
 
   if (status === "loading") {
-    return <Loader/>;
+    return <Loader />;
   }
   if (!session) {
-    throw new Error()
+    throw new Error();
   }
 
-  if (isFetching) return <Loader/>;
+  if (isFetching) return <Loader />;
   if (!veterinary || error)
     return <div className="text-center">Erreur : {error?.message}</div>;
 

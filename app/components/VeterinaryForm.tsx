@@ -33,7 +33,6 @@ const VeterinaryForm = forwardRef<HTMLDivElement, VeterinaryFormProps>(
   ({ defaultValues, onClose }, ref) => {
     const queryClient = useQueryClient();
     const router = useRouter();
-    console.log(onClose);
 
     const form = useForm<z.infer<typeof VeterinaryFormSchema>>({
       resolver: zodResolver(VeterinaryFormSchema),

@@ -1,10 +1,10 @@
 "use client";
 
 import ErrorCard from "@components/ErrorCard";
-import { CustomError } from "./types/customError";
-import { useEffect } from "react";
-import { useSession } from "next-auth/react";
 import { Loader } from "@components/Loader";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { CustomError } from "./types/customError";
 
 type ErrorProps = {
   error: CustomError;
@@ -14,10 +14,6 @@ type ErrorProps = {
 export default function Error({ error, reset }: ErrorProps) {
   console.log("message: ", error.message);
 
-  console.log(typeof error);
-
-
-  
   useEffect(() => {
     console.log(error.message);
   }, [error]);
@@ -25,7 +21,7 @@ export default function Error({ error, reset }: ErrorProps) {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <Loader/>;
+    return <Loader />;
   }
 
   let title = "";
@@ -37,11 +33,11 @@ export default function Error({ error, reset }: ErrorProps) {
     message =
       "Vous devez vous authentifier pour accéder à la liste des vétérinaires.";
     authRequired = true;
-  } else if (typeof error === 'string'){
+  } else if (typeof error === "string") {
     title = "Une erreur est survenue...";
     message = error;
     authRequired = false;
-  }else {
+  } else {
     title = "Une erreur est survenue...";
     message = "erreur inconnue";
     authRequired = false;

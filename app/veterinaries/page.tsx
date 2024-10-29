@@ -8,6 +8,7 @@ import VeterinariesList from "@components/VeterinariesList";
 import VeterinaryForm from "@components/VeterinaryForm";
 import { env } from "@lib/env";
 import { useQuery } from "@tanstack/react-query";
+import { LatLngBounds } from "leaflet";
 import { CirclePlus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -24,6 +25,16 @@ const VeterinariesPage = () => {
   const [veterinaryId, setVeterinaryId] = useState<number | null>(null);
   const veterinaryFormRef = useRef<HTMLDivElement>(null);
   const { data: session, status } = useSession();
+
+  const [franceBounds, setFranceBounds] = useState<LatLngBounds | null>(null);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+
+  useEffect(() => {
+    const { LatLngBounds } = require("leaflet");
+    // Initialise les bounds uniquement côté client
+    const bounds = new LatLngBounds([41.333, -5.225], [51.124, 9.662]);
+    setFranceBounds(bounds);
+  }, []);
 
   useEffect(() => {
     if (showNewVeterinaryForm && veterinaryFormRef.current) {
@@ -83,7 +94,6 @@ const VeterinariesPage = () => {
   const handleClickShowVeterinaryForm = () => {
     setShowNewVeterinaryForm((prev) => !prev);
   };
-  console.log(showNewVeterinaryForm);
 
   const handleClickGetVeterinaryId = (id: number | null) => {
     setVeterinaryId(id);
@@ -100,6 +110,7 @@ const VeterinariesPage = () => {
       vet.ville.codePostal.includes(searchQuery)
   );
 
+  // otherPoints GPS
   const otherPoints = veterinaries?.map((vet) => ({
     id: vet.id,
     lat: Number(vet.latitude),
@@ -109,13 +120,21 @@ const VeterinariesPage = () => {
     isOpen24Hours: vet.isOpen24Hours,
   }));
 
-  const handleClickAnchorFrenchMap = () => {
-    window.location.hash = "#frenchMap";
-    const mapElement = document.getElementById("frenchMap");
-    if (mapElement) {
-      mapElement.scrollIntoView({ behavior: "smooth" });
+  const handleClickAnchorandCenterFrenchMap = () => {
+    if (typeof window !== "undefined" && franceBounds) {
+      window.location.hash = "#frenchMap";
+      const mapElement = document.getElementById("frenchMap");
+      if (mapElement) {
+        mapElement.scrollIntoView({ behavior: "smooth" });
+      }
+      setVeterinaryId(null);
+      mapInstance?.fitBounds(franceBounds);
     }
-    setVeterinaryId(null);
+    return;
+  };
+
+  const getMapInstance = (map: L.Map) => {
+    setMapInstance(map);
   };
 
   return (
@@ -146,6 +165,7 @@ const VeterinariesPage = () => {
             <Map
               otherPoints={otherPoints}
               veterinaryId={veterinaryId as number}
+              getMapInstance={getMapInstance}
             />
           </div>
           <div className="flex w-full items-center justify-between">
@@ -153,7 +173,7 @@ const VeterinariesPage = () => {
             <Button
               variant={"link"}
               className="text-sm md:text-xl"
-              onClick={handleClickAnchorFrenchMap}
+              onClick={handleClickAnchorandCenterFrenchMap}
             >
               Map France
             </Button>
